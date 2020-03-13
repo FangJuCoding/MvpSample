@@ -14,7 +14,7 @@ public class UserPresenter extends BaseMvpPresenter<UserContract.UserView>
             return;
         }
         getView().loading();
-        User self = new User("张三", 200);
+        User self = new User("张三", 20);
 
         if (self.getAge() > 100) {
             getView().showError("年龄不可能这么大");
