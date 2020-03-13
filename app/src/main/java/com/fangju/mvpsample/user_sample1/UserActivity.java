@@ -1,7 +1,5 @@
 package com.fangju.mvpsample.user_sample1;
 
-import androidx.annotation.NonNull;
-
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -9,17 +7,15 @@ import android.widget.Toast;
 
 import com.fangju.mvpsample.R;
 import com.fangju.mvpsample.base.BaseMvpActivity;
+import com.fangju.mvpsample.inject.InjectPresenter;
 
-public class UserActivity extends BaseMvpActivity<UserContract.Presenter>
+public class UserActivity extends BaseMvpActivity
         implements UserContract.UserView, View.OnClickListener {
     private Button mStartBtn;
     private TextView mShowTv;
 
-    @NonNull
-    @Override
-    protected UserContract.Presenter createPresenter() {
-        return new UserPresenter();
-    }
+    @InjectPresenter
+    UserPresenter mUserPresenter;
 
     @Override
     protected int getLayoutResId() {
@@ -38,7 +34,7 @@ public class UserActivity extends BaseMvpActivity<UserContract.Presenter>
     @Override
     public void onClick(View v) {
         if (mStartBtn == v) {
-            getPresenter().getSelfInfo();
+            mUserPresenter.getSelfInfo();
         }
     }
 

@@ -1,36 +1,55 @@
 package com.fangju.mvpsample.base;
 
 import android.os.Bundle;
-import android.os.PersistableBundle;
 
-import androidx.annotation.NonNull;
+import com.fangju.mvpsample.inject.InjectPresenter;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 /**
  * Created by FangJu on 2020/3/13.
  */
-public abstract class BaseMvpActivity<P extends BaseContract.BasePresenter> extends AppCompatActivity
+public abstract class BaseMvpActivity extends AppCompatActivity
         implements BaseContract.BaseView {
-    private P mPresenter;
+    private List<BaseMvpPresenter> mPresenterList = new ArrayList<>();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(getLayoutResId());
-        mPresenter = createPresenter();
-        mPresenter.attach(this);
+        injectPresenter();
         initView();
         initData();
     }
 
-    public P getPresenter() {
-        return mPresenter;
+    private void injectPresenter() {
+        Field[] declaredFields = this.getClass().getDeclaredFields();
+        for (Field field : declaredFields) {
+            InjectPresenter injectPresenter = field.getAnnotation(InjectPresenter.class);
+            if (injectPresenter != null) {
+                Class<? extends BaseMvpPresenter> presenter = null;
+                // 判断是否是继承自BasePresenter
+//                if (field.getType().isAssignableFrom(BaseMvpPresenter.class)) {
+                    presenter = (Class<? extends BaseMvpPresenter>) field.getType();
+                    BaseMvpPresenter baseMvpPresenter = null;
+                    try {
+                        baseMvpPresenter = presenter.newInstance();
+                        baseMvpPresenter.attach(this);
+                        field.setAccessible(true);
+                        field.set(this, baseMvpPresenter);
+                        mPresenterList.add(baseMvpPresenter);
+                    } catch (IllegalAccessException | InstantiationException e) {
+                        e.printStackTrace();
+                    }
+//                }
+            }
+        }
     }
-
-    // 实例化当前MvpActivity所对应的Presenter
-    @NonNull
-    protected abstract P createPresenter();
 
     // 初始化数据，交给子类选择复写
     protected void initData() {
@@ -60,6 +79,8 @@ public abstract class BaseMvpActivity<P extends BaseContract.BasePresenter> exte
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mPresenter.detach(this);
+        for (BaseMvpPresenter baseMvpPresenter : mPresenterList) {
+            baseMvpPresenter.detach(this);
+        }
     }
 }
