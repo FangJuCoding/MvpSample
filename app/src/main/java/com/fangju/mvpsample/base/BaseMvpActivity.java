@@ -2,11 +2,8 @@ package com.fangju.mvpsample.base;
 
 import android.os.Bundle;
 
-import com.fangju.mvpsample.inject.InjectPresenter;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
+import com.fangju.mvpsample.proxy.IMvpActivityProxyImpl;
+import com.fangju.mvpsample.proxy.IMvpProxy;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,39 +13,20 @@ import androidx.appcompat.app.AppCompatActivity;
  */
 public abstract class BaseMvpActivity extends AppCompatActivity
         implements BaseContract.BaseView {
-    private List<BaseMvpPresenter> mPresenterList = new ArrayList<>();
+    private IMvpProxy mActivityProxy;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(getLayoutResId());
-        injectPresenter();
+        mActivityProxy = createActivityProxy();
+        mActivityProxy.bindAndCreatePresenter();
         initView();
         initData();
     }
 
-    private void injectPresenter() {
-        Field[] declaredFields = this.getClass().getDeclaredFields();
-        for (Field field : declaredFields) {
-            InjectPresenter injectPresenter = field.getAnnotation(InjectPresenter.class);
-            if (injectPresenter != null) {
-                Class<? extends BaseMvpPresenter> presenter = null;
-                // 判断是否是继承自BasePresenter
-//                if (field.getType().isAssignableFrom(BaseMvpPresenter.class)) {
-                    presenter = (Class<? extends BaseMvpPresenter>) field.getType();
-                    BaseMvpPresenter baseMvpPresenter = null;
-                    try {
-                        baseMvpPresenter = presenter.newInstance();
-                        baseMvpPresenter.attach(this);
-                        field.setAccessible(true);
-                        field.set(this, baseMvpPresenter);
-                        mPresenterList.add(baseMvpPresenter);
-                    } catch (IllegalAccessException | InstantiationException e) {
-                        e.printStackTrace();
-                    }
-//                }
-            }
-        }
+    private IMvpProxy createActivityProxy() {
+        return new IMvpActivityProxyImpl<>(this);
     }
 
     // 初始化数据，交给子类选择复写
@@ -78,9 +56,7 @@ public abstract class BaseMvpActivity extends AppCompatActivity
 
     @Override
     protected void onDestroy() {
+        mActivityProxy.unbindPresenter();
         super.onDestroy();
-        for (BaseMvpPresenter baseMvpPresenter : mPresenterList) {
-            baseMvpPresenter.detach(this);
-        }
     }
 }
