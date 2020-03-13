@@ -11,7 +11,11 @@ public interface UserContract {
         void showSelfInfo(User self);
     }
 
-    public interface Presenter extends BaseContract.BasePresenter<UserView> {
+    public interface Presenter extends BaseContract.BasePresenter<UserView, UserModel> {
         void getSelfInfo();
+    }
+
+    public interface UserInfoModel {
+        User getSelfInfo();
     }
 }

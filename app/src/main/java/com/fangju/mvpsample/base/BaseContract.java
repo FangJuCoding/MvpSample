@@ -11,9 +11,13 @@ public interface BaseContract {
         void showError(String error);
     }
 
-    public interface BasePresenter<V extends BaseView> {
+    public interface BasePresenter<V extends BaseView, M extends BaseModel> {
         void attach(V view);
 
         void detach(V view);
+    }
+
+    public class BaseModel {
+
     }
 }

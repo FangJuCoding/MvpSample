@@ -5,7 +5,7 @@ import com.fangju.mvpsample.base.BaseMvpPresenter;
 /**
  * Created by FangJu on 2020/3/13.
  */
-public class UserPresenter extends BaseMvpPresenter<UserContract.UserView>
+public class UserPresenter extends BaseMvpPresenter<UserContract.UserView, UserModel>
         implements UserContract.Presenter {
 
     @Override
@@ -14,8 +14,7 @@ public class UserPresenter extends BaseMvpPresenter<UserContract.UserView>
             return;
         }
         getView().loading();
-        User self = new User("张三", 20);
-
+        User self = getModel().getSelfInfo();
         if (self.getAge() > 100) {
             getView().showError("年龄不可能这么大");
             return;
